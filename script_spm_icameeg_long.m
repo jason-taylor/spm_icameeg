@@ -322,7 +322,7 @@ if do_ica_montage
     S.D              = D.fname;
     S.ICA            = ICA.fname;
     S.remove         = comp2remove; % <- from above
-    S.bcmontagefname = montagefname_bc; % if you haven't interpolated bad chans!
+    %S.bcmontagefname = montagefname_bc; % if you haven't interpolated bad chans!
     S.apply          = 1; % apply it to clean the data 
     
     [D,ICA,montagefname,montage] = spm_icameeg_montage(S);

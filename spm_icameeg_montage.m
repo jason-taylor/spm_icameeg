@@ -17,6 +17,7 @@ function [D,ICA,montagefname,montage] = spm_icameeg_montage(S)
 %
 %  spm_icameeg and spm_eeglab tools
 %  by Jason Taylor (09/Mar/2018) jason.taylor@manchester.ac.uk
+%   + 17/May/2021 jt: fixed issue with interpolation
 
 %--------------------------------------------------
 
@@ -58,9 +59,13 @@ iweights = pinv(ICA.weights);
 finalics = setdiff(1:ICA.ncomp,comp2rem);
 tramat = iweights(:,finalics) * ICA.weights(finalics,:);
 
-% Put into full montage (all channels, not just EEG):
+% Put into full montage (all channels of the type used in ICA):
+chtype = char(chantype(D,indchannel(D,ICA.chans{1})));
+tra = eye(length(indchantype(D,chtype)));
+
 tra = eye(size(D,1));
 tra(D.indchannel(ICA.chans),D.indchannel(ICA.chans)) = tramat;
+tra = tra(indchantype(D,chtype),indchantype(D,chtype));
 
 % Interpolate bad channels?:
 msg=''; bctxt='';
@@ -75,8 +80,8 @@ end
 % Create SPM-format montage:
 clear montage
 montage.tra = tra;
-montage.labelorg = D.chanlabels;
-montage.labelnew = D.chanlabels;
+montage.labelorg = chanlabels(D,indchantype(D,chtype));
+montage.labelnew = chanlabels(D,indchantype(D,chtype));
 if isempty(montagefname)
     remtxt = sprintf('%d_',comp2rem);
     montagefname = sprintf('montage_ICA%d_rem%s%s%s.mat',ICA.ncomp,remtxt,bctxt,fstem);
@@ -100,6 +105,9 @@ set(gca,'fontsize',8);
 figfname = sprintf('imagesc_%s.png',montagefname(1:end-4));
 print(f,'-dpng',figfname);
 fprintf('++ Saved figure to %s\n',figfname);
+figfname = sprintf('imagesc_%s.fig',montagefname(1:end-4));
+saveas(f,figfname,'fig');
+fprintf('++ Saved figure to %s\n',figfname);
 
 %% Apply montage?:
 
@@ -112,7 +120,7 @@ if apply
     S.mode          = 'write';
     S.prefix        = newprefix;
     S.montage       = montagefname;
-    S.keepothers    = 0; % Must be 0 in case badchan interp is used!
+    S.keepothers    = 1; 
     S.keepsensors   = 1;
     S.updatehistory = 1;
     

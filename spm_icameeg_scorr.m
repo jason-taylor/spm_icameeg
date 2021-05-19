@@ -21,6 +21,7 @@ function ICA = spm_icameeg_scorr(S)
 %
 %  spm_icameeg and spm_eeglab tools
 %  by Jason Taylor (09/Mar/2018) jason.taylor@manchester.ac.uk
+%   + 18/May/2021 jt: save fig as well as png, fstem ICA.fname not D.fname
 
 %--------------------------------------------------
 
@@ -40,7 +41,6 @@ try rmfiles = S.rmfiles;   catch, rmfiles = 1;             end
 %% Load SPM-format data file (on which ICA was run):
 
 Dica = spm_eeg_load(S.D);
-[~,fstem] = fileparts(Dica.fname);
 
 % Load continuous data (if D is epoched):
 if ~isempty(fnamecont)
@@ -212,9 +212,13 @@ for i=1:length(arttypes)
     ICA.artefact.scorr.(arttype).topo    = dm;
 
     %% Save figure:
+    [~,fstem] = fileparts(ICA.fname);
     figfname = sprintf('summary_scorr_%s_%s.png',arttype,fstem);
     print(fig,'-dpng',figfname);
-    fprintf('++ Saved figure to %s\n',figfname);
+    fprintf('++ Saved figure to image: %s\n',figfname);
+    figfname = sprintf('summary_scorr_%s_%s.fig',arttype,fstem);
+    saveas(fig,figfname,'fig');
+    fprintf('++ Saved figure to fig: %s\n',figfname);
     
 end
 

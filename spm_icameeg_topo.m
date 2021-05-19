@@ -12,7 +12,8 @@ function ftopo = spm_icameeg_topo(S)
 %
 %  spm_icameeg and spm_eeglab tools
 %  by Jason Taylor (09/Mar/2018) jason.taylor@manchester.ac.uk
-
+%   + 18/May/2021 jt: save plot to image and figure; chan type
+%
 %--------------------------------------------------
 
 %% Check inputs:
@@ -76,6 +77,7 @@ in=[];
 in.noButtons = 1;
 in.cbar = 0;
 in.plotpos = 0;
+in.type = char(chantype(D,indchannel(D,cl{1})));
 
 for i=1:length(components)
     comp = components(i);
@@ -108,7 +110,10 @@ if savefig
     [~,fstem] = fileparts(ICA.fname);
     figfname = sprintf('topos_%s.png',fstem);
     print(gcf,'-dpng',figfname);
-    fprintf('++ Figure saved to %s\n',figfname);
+    fprintf('++ Figure saved to image: %s\n',figfname);
+    figfname = sprintf('topos_%s.fig',fstem);
+    saveas(gcf,figfname,'fig');
+    fprintf('++ Figure saved to fig: %s\n',figfname);
 end
 
 return

@@ -16,6 +16,7 @@ function ICA = spm_icameeg_tcorr(S)
 %
 %  spm_icameeg and spm_eeglab tools
 %  by Jason Taylor (09/Mar/2018) jason.taylor@manchester.ac.uk
+%   + 18/May/2021 jt: save fig as well as png, fstem ICA.fname not D.fname
 
 %  NOTE: need to sort out topo of MEGPLANAR sensors (RMS at each location)
 
@@ -36,7 +37,6 @@ try thresh    = S.thresh;    catch, thresh    = 2;        end
 %% Load SPM-format data file:
 
 D = spm_eeg_load(S.D);
-[~,fstem] = fileparts(D.fname);
 
 fprintf('\n\n');
 fprintf('++ %s\n',datestr(now));
@@ -126,10 +126,14 @@ end
 save(ICA.fname,'ICA');
 fprintf('++ Saved output ICA struct to %s\n',ICA.fname);
 
-% Save z-score figure:
+% Save z-score image/figure:
 artchantxt = sprintf('%s_',artchans{:});
+[~,fstem] = fileparts(ICA.fname);
 figfname = sprintf('summary_tcorr_%s%s.png',artchantxt,fstem);
 print(fig,'-dpng',figfname);
-fprintf('++ Saved figure to %s\n',figfname);
+fprintf('++ Saved figure to image: %s\n',figfname);
+figfname = sprintf('summary_tcorr_%s%s.fig',artchantxt,fstem);
+saveas(fig,figfname,'fig');
+fprintf('++ Saved figure to fig: %s\n',figfname);
 
 return
