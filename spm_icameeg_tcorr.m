@@ -5,6 +5,9 @@ function ICA = spm_icameeg_tcorr(S)
 %   S.D          - MEEG object or filename of MEEG object
 %   S.ICA        - ICA struct or filename (output of spm_eeglab_runica)
 %   S.artchans   - Artefact chan names, cell array (default: {'VEOG'})
+%                  or labels for S.artdata if provided
+%   S.artdata    - cell array of custom artefact data (each cell should be
+%                  1 chan x time (x trials)
 %   S.artfilts   - Bandpass filters to use (default: {[1 20]};
 %   S.thresh     - Threshold for z-score of temporal correlation (def:2)
 %  OUTPUT: 
@@ -17,6 +20,7 @@ function ICA = spm_icameeg_tcorr(S)
 %  spm_icameeg and spm_eeglab tools
 %  by Jason Taylor (09/Mar/2018) jason.taylor@manchester.ac.uk
 %   + 18/May/2021 jt: save fig as well as png, fstem ICA.fname not D.fname
+%   + 07/Jun/2021 jt: artchans can be data (cell array, need artchanlabs
 
 %  NOTE: need to sort out topo of MEGPLANAR sensors (RMS at each location)
 
@@ -31,6 +35,7 @@ else
     S.ICA = ICA.fname; % save RAM
 end
 try artchans  = S.artchans;  catch, artchans  = {'VEOG'}; end
+try artdata = S.artdata; catch, artdata = []; end
 try artfilts  = S.artfilts;  catch, artfilts  = {[1 20]}; end
 try thresh    = S.thresh;    catch, thresh    = 2;        end
 
@@ -56,13 +61,18 @@ for i=1:length(artchans)
     artfilt = artfilts{i};
     suspect = [];
     
+        
     %% Extract data, filter it:
-    if ~iscell(ICA.timewin)
-        a = selectdata(D,artchan,ICA.timewin,[]);
+    if ~isempty(artdata)
+        a = artdata{i};
     else
-        a = [];
-        for tw=1:length(ICA.timewin)
-            a = [a selectdata(D,artchan,ICA.timewin{tw},[])];
+        if ~iscell(ICA.timewin)
+            a = selectdata(D,artchan,ICA.timewin,[]);
+        else
+            a = [];
+            for tw=1:length(ICA.timewin)
+                a = [a selectdata(D,artchan,ICA.timewin{tw},[])];
+            end
         end
     end
     if ~strcmpi(D.type,'continuous')
@@ -133,7 +143,7 @@ figfname = sprintf('summary_tcorr_%s%s.png',artchantxt,fstem);
 print(fig,'-dpng',figfname);
 fprintf('++ Saved figure to image: %s\n',figfname);
 figfname = sprintf('summary_tcorr_%s%s.fig',artchantxt,fstem);
-saveas(fig,figfname,'fig');
-fprintf('++ Saved figure to fig: %s\n',figfname);
+%saveas(fig,figfname,'fig');
+%fprintf('++ Saved figure to fig: %s\n',figfname);
 
 return
