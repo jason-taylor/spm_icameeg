@@ -1,4 +1,4 @@
-function [suspects,report] = spm_icameeg_suspects(S)
+function [suspects,report,fmain,fchild] = spm_icameeg_suspects(S)
 % Report 'suspect' ICA components from various methods. 
 %  FORMAT: [suspects, report] = spm_icameeg_suspects(S)
 %  INPUT: Struct 'S' with fields:
@@ -6,13 +6,17 @@ function [suspects,report] = spm_icameeg_suspects(S)
 %   S.ICA          - ICA struct (from spm_eeglab_runica)
 %   S.dotopo       - plot topographies of suspect components (def:0)
 %   S.doeegplot    - plot time-courses of suspect components (def:0)
+%   S.child.*      - see spm_eeglab_eegplot child plot options (def: EOG)
 %
 %  OUTPUT: 
 %   suspects       - suspected artefact components
 %   report         - table summarising suspects and reasons
+%   fmain          - figure handle of main eegplot
+%   fchild         - figure handle of child eegplot
 %
 %  spm_icameeg and spm_eeglab tools
 %  by Jason Taylor (09/Mar/2018) jason.taylor@manchester.ac.uk
+%   + (07/Jun/2021) jt: added eegplot child options, fmain fchild output
 
 %--------------------------------------------------
 
@@ -25,6 +29,7 @@ else
 end
 try dotopo = S.dotopo;       catch, dotopo = 0;    end
 try doeegplot = S.doeegplot; catch, doeegplot = 0; end
+try childfield = S.child;    catch, childfield = []; end
 
 % Load SPM-format data file:
 D = spm_eeg_load(S.D);
@@ -106,7 +111,7 @@ end
 
 if doeegplot
     
-    fprintf('++ Plotting time-courses of suspect components and EOG\n');
+    fprintf('++ Plotting time-courses of suspect components and art chans\n');
     
     S=[];
     S.D              = D.fname;
@@ -114,10 +119,14 @@ if doeegplot
     S.compinds       = suspects;
     S.title          = 'IC Activations';
     S.spacing        = 10;
-    S.child.chantype = {'EOG'};
-    S.child.title    = 'EOG';
-    S.child.spacing  = 300;
-    spm_eeglab_eegplot(S);
+    if ~isempty(childfield)
+        S.child = childfield;
+    else
+        S.child.chantype = {'EOG'};
+        S.child.title    = 'EOG';
+        S.child.spacing  = 300;
+    end
+    [fmain,fchild] = spm_eeglab_eegplot(S);
     
 end
 
