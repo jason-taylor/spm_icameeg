@@ -6,13 +6,14 @@ function ftopo = spm_icameeg_topo(S)
 %   S.ICA        - ICA struct or filename (output of spm_eeglab_runica)
 %   S.components - Indices of components to plot (default: all)
 %   S.figsubplot - [fig sprows spcols startind] to move plot to
-%   S.savefig    - save figure to file? (1/0 def: 1)
+%   S.savefig    - save figure to file? (1(or prefix)/0 def: 1)
 %  OUTPUT: 
 %   ftopo        - Figure handle of topography plot
 %
 %  spm_icameeg and spm_eeglab tools
 %  by Jason Taylor (09/Mar/2018) jason.taylor@manchester.ac.uk
 %   + 18/May/2021 jt: save plot to image and figure; chan type
+%   + 05/Aug/2021 jt: added prefix option for topo fig/image filename
 %
 %--------------------------------------------------
 
@@ -108,12 +109,20 @@ set(gcf,'color','w')
 %% Save figure as image:
 if savefig
     [~,fstem] = fileparts(ICA.fname);
-    figfname = sprintf('topos_%s.png',fstem);
-    print(gcf,'-dpng',figfname);
-    fprintf('++ Figure saved to image: %s\n',figfname);
-    figfname = sprintf('topos_%s.fig',fstem);
+    if isstr(savefig)
+        figfstem = sprintf('%s_%s',savefig,fstem);
+    else
+        figfstem = sprintf('topos_%s',fstem);
+    end
+    
+    pngfname = [figfstem '.png'];
+    print(gcf,'-dpng',pngfname);
+    fprintf('++ Figure saved to image: %s\n',pngfname);
+
+    figfname = [figfstem '.fig'];
     saveas(gcf,figfname,'fig');
     fprintf('++ Figure saved to fig: %s\n',figfname);
+
 end
 
 return
