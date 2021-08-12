@@ -1,10 +1,11 @@
 function [removed,report,fmain,fchild] = spm_icameeg_removed(S)
 % Report removed ICA components and summarise evidence. 
-%  FORMAT: [removed, report, fmain, fchild] = spm_icameeg_suspects(S)
+%  FORMAT: [removed, report, fmain, fchild] = spm_icameeg_removed(S)
 %  INPUT: Struct 'S' with fields:
 %   S.D            - MEEG object or filename of MEEG object
 %   S.ICA          - ICA struct (from spm_eeglab_runica)
-%   S.dotopo       - plot topographies of removed components (def:0)
+%   S.dotopo       - plot topographies of removed components (def:1)
+%   S.savetopo     - save topo figure as fig and png? (def:1)
 %   S.doeegplot    - plot time-courses of removed components (def:0)
 %   S.child.*      - see spm_eeglab_eegplot child plot options (def: EOG)
 %
@@ -26,7 +27,8 @@ else
     ICA = S.ICA;
     S.ICA = ICA.fname; % save RAM
 end
-try dotopo = S.dotopo;       catch, dotopo = 0;    end
+try dotopo = S.dotopo;       catch, dotopo = 1;    end
+try savetopo = S.savetopo;   catch, savetopo = 'topo_removed';  end
 try doeegplot = S.doeegplot; catch, doeegplot = 0; end
 try childfield = S.child;    catch, childfield = []; end
 
@@ -53,7 +55,7 @@ for r=1:length(removed)
         icamethod = icamethods{m};
     
         if strcmpi('manual',icamethod)
-            ind = find(ICA.artefact.manual.suspect == comp);
+            ind = find([ICA.artefact.manual.suspect] == comp);
             if any(ind)
                 reason = ICA.artefact.manual(ind).reason;
                 report(end+1,:) = {comp 'manual' reason [] []};
@@ -61,28 +63,28 @@ for r=1:length(removed)
             
         else
         
-        arts = fieldnames(ICA.artefact.(icamethod));
-        
-        for j=1:length(arts)
-            art = arts{j};
-
-            rmat = sortrows(ICA.artefact.(icamethod).(art).summary,1);
-                for j=1:length(suspect)
-                    comp = suspect(j);
-                    r = rmat(comp,2);
-                    z = rmat(comp,3);
-                    report(end+1,:) = {comp icamethod art r z};
-                end
+            arts = fieldnames(ICA.artefact.(icamethod));
+            
+            for j=1:length(arts)
+                art = arts{j};
+                
+                rmat = ICA.artefact.(icamethod).(art).summary;
+                ind = find(rmat(:,1)==comp);
+                r = rmat(ind,2);
+                z = rmat(ind,3);
+                report(end+1,:) = {comp icamethod art r z};
             end
+ 
         end
     end
 end
+
 report = sortrows(report,1);
-% 
-% % Save report:
-% reportfname = sprintf('report_removed_%s.mat',fstem);
-% save(reportfname,'report');
-% fprintf('++ Report saved to %s\n',reportfname);
+
+% Save report:
+reportfname = sprintf('report_removed_%s.mat',fstem);
+save(reportfname,'report');
+fprintf('++ Report saved to %s\n',reportfname);
 
 
 %% Print report to screen
@@ -108,7 +110,7 @@ if dotopo
     S.D              = D.fname;
     S.ICA            = ICA.fname;
     S.components     = removed;
-    S.savefig        = 0;
+    S.savefig        = savetopo;
     spm_icameeg_topo(S);
     
 end

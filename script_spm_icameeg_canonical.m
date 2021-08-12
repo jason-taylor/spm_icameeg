@@ -230,6 +230,22 @@ S.child.spacing  = 300;
 spm_eeglab_eegplot(S);
 
 
+%% Plot topographies of removed components and report artefact info
+
+% Save topography image for later reference. Report correlations etc. Can
+% be useful for compiling information for group studies (e.g., number of
+% components removed, average VEOG correlation of removed components, etc.)
+
+S=[];
+S.D         = D.fname;
+S.ICA       = ICA.fname;
+S.dotopo    = 1; % plot topographies of removed components?
+S.savetopo  = 'topo_removed'; % prefix for .fig and .png
+S.doeegplot = 0; % plot time-courses of removed components?
+
+[removed,report] = spm_icameeg_removed(S);
+
+
 %% Continue preprocessing...
 
 % You can now carry on with your usual preprocessing -- but don't reject 

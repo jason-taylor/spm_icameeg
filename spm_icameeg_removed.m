@@ -1,11 +1,11 @@
 function [removed,report,fmain,fchild] = spm_icameeg_removed(S)
 % Report removed ICA components and summarise evidence. 
-%  FORMAT: [removed, report, fmain, fchild] = spm_icameeg_suspects(S)
+%  FORMAT: [removed, report, fmain, fchild] = spm_icameeg_removed(S)
 %  INPUT: Struct 'S' with fields:
 %   S.D            - MEEG object or filename of MEEG object
 %   S.ICA          - ICA struct (from spm_eeglab_runica)
 %   S.dotopo       - plot topographies of removed components (def:1)
-%   S.savetopo     - save topo figure as fig and png? (def:1)
+%   S.savetopo     - save topo figure as fig and png? (1(/prefix)|0) (def:'topo_removed')
 %   S.doeegplot    - plot time-courses of removed components (def:0)
 %   S.child.*      - see spm_eeglab_eegplot child plot options (def: EOG)
 %
@@ -28,7 +28,7 @@ else
     S.ICA = ICA.fname; % save RAM
 end
 try dotopo = S.dotopo;       catch, dotopo = 1;    end
-try savetopo = S.savetopo;   catch, savetopo = 1;  end
+try savetopo = S.savetopo;   catch, savetopo = 'topo_removed';  end
 try doeegplot = S.doeegplot; catch, doeegplot = 0; end
 try childfield = S.child;    catch, childfield = []; end
 
