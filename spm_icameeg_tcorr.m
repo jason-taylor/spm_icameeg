@@ -143,7 +143,7 @@ figfname = sprintf('summary_tcorr_%s%s.png',artchantxt,fstem);
 print(fig,'-dpng',figfname);
 fprintf('++ Saved figure to image: %s\n',figfname);
 figfname = sprintf('summary_tcorr_%s%s.fig',artchantxt,fstem);
-%saveas(fig,figfname,'fig');
-%fprintf('++ Saved figure to fig: %s\n',figfname);
+saveas(fig,figfname,'fig');
+fprintf('++ Saved figure to fig: %s\n',figfname);
 
 return
