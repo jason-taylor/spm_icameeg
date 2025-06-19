@@ -13,6 +13,7 @@
 % RUN each cell one at a time (click to highlight cell, then Ctrl+Enter)
 %
 % by Jason Taylor (18/Jun/2019) jason.taylor@manchester.ac.uk
+%  + jt (19/Jun/2025) updated interpolation to work with SPM25
 
 
 %% Load SPM12 M/EEG format data
@@ -46,10 +47,14 @@ spm_eeglab_eegplot(S);
 %% Create bad-channel interpolation montage
 
 % Requires hacked function ft_channelrepair_jt.m to be copied here:
-%  [spm12 path]/external/fieldtrip/
-% Uncomment and run code below...
+%  [spm path]/external/fieldtrip/
+% Uncomment and run code below... (should now work with SPM25 too)
 
-% src = which('COPYME_ft_channelrepair_jt.m');
+% if strmatch('SPM25',spm('version'))
+%     src = which('COPYME_ft_channelrepair_jt_SPM25.m');
+% else
+%     src = which('COPYME_ft_channelrepair_jt.m');
+% end
 % spmdir = fileparts(which('spm'));
 % dst = fullfile(spmdir,'external','fieldtrip','ft_channelrepair_jt.m');
 % copyfile(src,dst);
