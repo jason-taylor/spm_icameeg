@@ -8,6 +8,7 @@ function ICA = spm_icameeg_scorr(S)
 %   S.artchans   - artefact chan names, cell array (default: {'VEOG'})
 %   S.arttypes   - types of artefacts to find (spm_eeg_artefact_?) 
 %                    (default: {'eyeblink'})
+%   S.artmax     - threshold to reject artefact trials (default: 1000) uV
 %   S.thresh     - threshold for zscore of spatial correlations (def: 2)
 %   S.rmfiles    - 1/0 remove intermediate files? (def: 1)
 %  OUTPUT: 
@@ -22,6 +23,7 @@ function ICA = spm_icameeg_scorr(S)
 %  spm_icameeg and spm_eeglab tools
 %  by Jason Taylor (09/Mar/2018) jason.taylor@manchester.ac.uk
 %   + 18/May/2021 jt: save fig as well as png, fstem ICA.fname not D.fname
+%   + 20/Jun/2025 jt: added artefact rejection of extreme-valued trials
 
 %--------------------------------------------------
 
@@ -37,6 +39,8 @@ try arttypes = S.arttypes; catch, arttypes = {'eyeblink'}; end
 try thresh = S.thresh;     catch, thresh = 2;              end
 try fnamecont = S.Dcont;   catch, fnamecont = '';          end
 try rmfiles = S.rmfiles;   catch, rmfiles = 1;             end
+try artmax = S.artmax;     catch, artmax = 1000;           end
+
 
 %% Load SPM-format data file (on which ICA was run):
 
@@ -115,6 +119,21 @@ for i=1:length(arttypes)
     S.eventpadding            = 0;
     
     Do = spm_eeg_epochs(S);
+    files2delete = [files2delete;Do.fname;Do.fnamedat];
+
+    %% Reject Artefacts - remove events with extreme values
+    S = [];
+    S.D = Do.fname;
+    S.mode = 'reject';
+    S.badchanthresh = 0.2;
+    S.prefix = 'a';
+    S.append = true;
+    S.methods(1).channels = artchan;
+    S.methods(1).fun = 'threshchan';
+    S.methods(1).settings.threshold = artmax; % user set or 1000uV default
+    S.methods(1).settings.excwin = 1000;
+
+    Do = spm_eeg_artefact(S);
     files2delete = [files2delete;Do.fname;Do.fnamedat];
     
     %% Average (artefacts):
